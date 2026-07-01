@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { subjects } from "@/constants"
+import {createCompanion} from "@/lib/actions/companion.actions";
 import { redirect } from "next/navigation"
 
 const formSchema = z.object({
@@ -27,15 +28,13 @@ const formSchema = z.object({
     duration: z.coerce.number().min(1, { message: 'Duration is required.' }),
 })
 
-type FormValues = z.infer<typeof formSchema>;
-
 const CompanionForm = () => {
     const {
         register,
         handleSubmit,
         control,
         formState: { errors },
-    } = useForm<FormValues>({
+    } = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: '',
@@ -47,13 +46,21 @@ const CompanionForm = () => {
         },
     })
 
-    const onSubmit = async (values: FormValues) => {
-        console.log(values)
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        const companion = await createCompanion(values);
+
+        if(companion){
+            redirect(`/companions/${companion.id}`);
+        }
+        else{
+            console.log('Failed to create companion');
+            redirect('/');
+        }
     }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <Field invalid={!!errors.name}>
+            <Field data-invalid={!!errors.name}>
                 <Label>Companion name</Label>
                 <Input
                     placeholder="Enter the companion name"
@@ -64,7 +71,7 @@ const CompanionForm = () => {
             </Field>
 
             {/* Subject */}
-            <Field invalid={!!errors.subject}>
+            <Field data-invalid={!!errors.subject}>
                 <Label>Subject</Label>
                 <Controller
                     control={control}
@@ -92,7 +99,7 @@ const CompanionForm = () => {
             </Field>
 
             {/* Topic */}
-            <Field invalid={!!errors.topic}>
+            <Field data-invalid={!!errors.topic}>
                 <Label>What should the companion help with?</Label>
                 <Textarea
                     placeholder="Ex. Derivatives & Integrals"
@@ -103,7 +110,7 @@ const CompanionForm = () => {
             </Field>
 
             {/* Voice */}
-            <Field invalid={!!errors.voice}>
+            <Field data-invalid={!!errors.voice}>
                 <Label>Voice</Label>
                 <Controller
                     control={control}
@@ -114,8 +121,8 @@ const CompanionForm = () => {
                                 <SelectValue placeholder="Select the voice" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="male">Male</SelectItem>
-                                <SelectItem value="female">Female</SelectItem>
+                                <SelectItem value="male" className="capitalize">Male</SelectItem>
+                                <SelectItem value="female" className="capitalize">Female</SelectItem>
                             </SelectContent>
                         </Select>
                     )}
@@ -124,7 +131,7 @@ const CompanionForm = () => {
             </Field>
 
             {/* Style */}
-            <Field invalid={!!errors.style}>
+            <Field data-invalid={!!errors.style}>
                 <Label>Style</Label>
                 <Controller
                     control={control}
@@ -135,15 +142,15 @@ const CompanionForm = () => {
                                 <SelectValue placeholder="Select the style" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="formal">Formal</SelectItem>
-                                <SelectItem value="casual">Casual</SelectItem>
+                                <SelectItem value="formal" className="capitalize">Formal</SelectItem>
+                                <SelectItem value="casual" className="capitalize">Casual</SelectItem>
                             </SelectContent>
                         </Select>
                     )}
                 />
                 <FieldError>{errors.style?.message}</FieldError>
             </Field>
-            <Field invalid={!!errors.duration}>
+            <Field data-invalid={!!errors.duration}>
                 <Label>Estimated session duration in minutes</Label>
                 <Input
                     type="number"
