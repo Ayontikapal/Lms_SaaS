@@ -5,7 +5,7 @@ import Cta from '@/components/CTA';
 
 const Page = () => {
   return (
-    <main>
+    <main className="mb-15">
       <h1 className="text-2xl underline">Popular Companions</h1>
       <section className="home-section">
         <CompanionCard
